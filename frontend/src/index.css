@@ -1,0 +1,129 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Premium Uber-style black & grey — light surface, still monochrome */
+  --bg-primary: #F6F6F6;
+  --bg-secondary: #FFFFFF;
+  --bg-tertiary: #EDEDED;
+  --border-color: #E0E0E0;
+  --text-primary: #0A0A0A;
+  --text-secondary: #6B6B6B;
+  --accent-blue: #000000;
+  --accent-amber: #9A9A9A;
+  --accent-glow: rgba(0, 0, 0, 0.12);
+  --success: #1EA34D;
+  --warning: #C9962C;
+  --danger: #D6362B;
+}
+
+.dark {
+  /* True Uber black — near-pure black backgrounds, graphite panels, silver text */
+  --bg-primary: #000000;
+  --bg-secondary: #121212;
+  --bg-tertiary: #1C1C1C;
+  --border-color: #2A2A2A;
+  --text-primary: #FAFAFA;
+  --text-secondary: #9B9B9B;
+  --accent-blue: #FFFFFF;
+  --accent-amber: #C7C7C7;
+  --accent-glow: rgba(255, 255, 255, 0.14);
+  --success: #33D67F;
+  --warning: #E3A93B;
+  --danger: #FF5A4E;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', system-ui, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color 0.4s ease, color 0.4s ease;
+  -webkit-font-smoothing: antialiased;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 8px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-blue);
+}
+
+/* Glassmorphism card */
+.glass-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  backdrop-filter: blur(20px);
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.glass-card:hover {
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 0 1px var(--accent-blue), 0 12px 40px -8px var(--accent-glow);
+  transform: translateY(-2px);
+}
+
+/* Status dot pulse */
+.status-dot {
+  position: relative;
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.status-dot::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  background: inherit;
+  opacity: 0.4;
+  animation: pulseGlow 2s ease-in-out infinite;
+}
+
+/* Leaflet dark map filter */
+.dark .leaflet-tile-pane {
+  filter: brightness(0.65) invert(1) contrast(0.9) hue-rotate(180deg) saturate(0.6);
+}
+.leaflet-container {
+  background: var(--bg-tertiary) !important;
+  border-radius: 20px;
+  z-index: 0;
+}
+
+/* Smooth road-line divider */
+.road-divider {
+  height: 2px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--accent-blue) 0px,
+    var(--accent-blue) 12px,
+    transparent 12px,
+    transparent 24px
+  );
+  opacity: 0.5;
+}
+
+/* Custom vehicle marker */
+.vehicle-marker {
+  filter: drop-shadow(0 0 6px var(--accent-blue));
+}

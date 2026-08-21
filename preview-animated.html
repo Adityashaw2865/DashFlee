@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>DashFlee Preview</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-primary:#0B0E14; --bg-secondary:#12161F; --bg-tertiary:#1A1F2B;
+    --border-color:#232838; --text-primary:#F5F7FA; --text-secondary:#8891A5;
+    --accent-blue:#0A84FF; --accent-glow:rgba(10,132,255,0.25);
+    --success:#30D158; --warning:#FF9F0A; --danger:#FF453A;
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:'Inter',sans-serif; background:var(--bg-primary); color:var(--text-primary); padding:32px; overflow-x:hidden; }
+  .disp { font-family:'Space Grotesk',sans-serif; }
+  .layout { display:flex; gap:24px; max-width:1200px; margin:0 auto; }
+
+  /* Sidebar slides in from left */
+  .sidebar { width:220px; background:rgba(18,22,31,0.6); border:1px solid var(--border-color); border-radius:20px; padding:20px; flex-shrink:0;
+    opacity:0; transform:translateX(-40px); animation:slideIn .6s cubic-bezier(.16,1,.3,1) forwards; }
+  .logo { display:flex; align-items:center; gap:10px; margin-bottom:24px; }
+  .logo-icon { background:rgba(10,132,255,0.1); color:var(--accent-blue); padding:8px; border-radius:10px;
+    animation:pulseIcon 2s ease-in-out infinite; }
+  .nav-item { display:flex; align-items:center; gap:10px; padding:11px 14px; border-radius:12px; font-size:13px; font-weight:500; margin-bottom:6px; color:var(--text-secondary);
+    opacity:0; transform:translateX(-20px); animation:slideIn .5s cubic-bezier(.16,1,.3,1) forwards;
+    transition:background .25s ease, color .25s ease; cursor:pointer; }
+  .nav-item:hover { background:var(--bg-tertiary); color:var(--text-primary); }
+  .nav-item.active { background:var(--accent-blue); color:white; box-shadow:0 0 24px var(--accent-glow); }
+  .nav-item:nth-child(2){animation-delay:.1s} .nav-item:nth-child(3){animation-delay:.16s}
+  .nav-item:nth-child(4){animation-delay:.22s} .nav-item:nth-child(5){animation-delay:.28s} .nav-item:nth-child(6){animation-delay:.34s}
+
+  .main { flex:1; }
+  h1 { font-size:22px; margin:0; opacity:0; transform:translateY(-10px); animation:fadeDown .5s ease forwards; }
+  .sub { color:var(--text-secondary); font-size:13px; margin-top:4px; opacity:0; animation:fadeDown .5s ease forwards; animation-delay:.05s; }
+
+  .stats { display:grid; grid-template-columns:repeat(5,1fr); gap:14px; margin:20px 0; }
+  .card { background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:18px; padding:16px;
+    opacity:0; transform:translateY(20px); animation:fadeUp .5s cubic-bezier(.16,1,.3,1) forwards;
+    transition:border-color .3s ease, box-shadow .3s ease, transform .3s ease; cursor:pointer; }
+  .card:hover { border-color:var(--accent-blue); box-shadow:0 0 0 1px var(--accent-blue), 0 12px 32px -8px var(--accent-glow); transform:translateY(-6px); }
+  .card:nth-child(1){animation-delay:0s} .card:nth-child(2){animation-delay:.05s}
+  .card:nth-child(3){animation-delay:.1s} .card:nth-child(4){animation-delay:.15s} .card:nth-child(5){animation-delay:.2s}
+  .card .icon { width:34px; height:34px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:16px; margin-bottom:10px; }
+  .blue-bg { background:rgba(10,132,255,0.1); color:var(--accent-blue); }
+  .green-bg { background:rgba(48,209,88,0.1); color:var(--success); }
+  .amber-bg { background:rgba(255,159,10,0.1); color:var(--warning); }
+  .red-bg { background:rgba(255,69,58,0.1); color:var(--danger); }
+  .val { font-size:22px; font-weight:700; }
+  .lbl { font-size:11px; color:var(--text-secondary); margin-top:2px; }
+
+  .table-card { background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:18px; padding:20px;
+    opacity:0; transform:translateY(20px); animation:fadeUp .5s cubic-bezier(.16,1,.3,1) forwards; animation-delay:.3s; }
+  table { width:100%; border-collapse:collapse; font-size:12px; }
+  th { text-align:left; color:var(--text-secondary); font-weight:500; padding-bottom:10px; text-transform:uppercase; font-size:10px; letter-spacing:0.5px; }
+  td { padding:10px 0; border-top:1px solid var(--border-color); }
+  tr.row { opacity:0; animation:fadeIn .4s ease forwards; }
+  tr.row:nth-child(2){animation-delay:.4s} tr.row:nth-child(3){animation-delay:.46s}
+  tr.row:nth-child(4){animation-delay:.52s} tr.row:nth-child(5){animation-delay:.58s}
+  tr.row:hover td { background:var(--bg-tertiary); }
+  .badge { display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:20px; font-size:11px; font-weight:500; }
+  .dot { width:7px; height:7px; border-radius:50%; position:relative; }
+  .dot::after { content:''; position:absolute; inset:-4px; border-radius:50%; background:inherit; opacity:.4; animation:pulseGlow 2s ease-in-out infinite; }
+  .active-badge { background:rgba(48,209,88,0.1); color:var(--success); }
+  .idle-badge { background:rgba(255,159,10,0.1); color:var(--warning); }
+  .service-badge { background:rgba(255,69,58,0.1); color:var(--danger); }
+  .soc-bar { width:70px; height:5px; background:var(--bg-tertiary); border-radius:10px; overflow:hidden; display:inline-block; vertical-align:middle; margin-right:6px; }
+  .soc-fill { height:100%; background:var(--accent-blue); width:0; animation:growBar 1.2s cubic-bezier(.16,1,.3,1) forwards; animation-delay:.8s; }
+  .footer { text-align:center; margin-top:24px; font-size:12px; color:var(--text-secondary);
+    opacity:0; animation:fadeIn .5s ease forwards; animation-delay:.9s; }
+  .footer b { color:var(--accent-blue); }
+
+  @keyframes slideIn { to { opacity:1; transform:translateX(0); } }
+  @keyframes fadeDown { to { opacity:1; transform:translateY(0); } }
+  @keyframes fadeUp { to { opacity:1; transform:translateY(0); } }
+  @keyframes fadeIn { to { opacity:1; } }
+  @keyframes pulseGlow { 0%,100%{opacity:.4;transform:scale(1);} 50%{opacity:.1;transform:scale(1.8);} }
+  @keyframes pulseIcon { 0%,100%{transform:scale(1);} 50%{transform:scale(1.12);} }
+  @keyframes growBar { from{width:0} }
+
+  .note { max-width:1200px; margin:0 auto 16px; font-size:12px; color:var(--text-secondary); text-align:center; }
+</style>
+</head>
+<body>
+<div class="note">↻ Reload the file to replay the entrance animations · hover cards & nav items to feel the transitions</div>
+<div class="layout">
+  <div class="sidebar">
+    <div class="logo">
+      <div class="logo-icon">⚡</div>
+      <div>
+        <div class="disp" style="font-weight:700;font-size:15px;">DashFlee</div>
+        <div style="font-size:9px;color:var(--text-secondary);">Fleet Control Room</div>
+      </div>
+    </div>
+    <div class="nav-item active">📊 Dashboard</div>
+    <div class="nav-item">📍 Live Tracking</div>
+    <div class="nav-item">👤 Drivers</div>
+    <div class="nav-item">🔔 Alerts</div>
+    <div class="nav-item">📈 Reports</div>
+  </div>
+  <div class="main">
+    <h1 class="disp">Fleet Overview</h1>
+    <div class="sub">Real-time status of your public transport fleet, live from the road.</div>
+
+    <div class="stats">
+      <div class="card"><div class="icon blue-bg">🚌</div><div class="val">6</div><div class="lbl">Total Fleet</div></div>
+      <div class="card"><div class="icon green-bg">⚡</div><div class="val">3</div><div class="lbl">Active</div></div>
+      <div class="card"><div class="icon amber-bg">⏸</div><div class="val">2</div><div class="lbl">Idle</div></div>
+      <div class="card"><div class="icon red-bg">🔧</div><div class="val">1</div><div class="lbl">Under Service</div></div>
+      <div class="card"><div class="icon blue-bg">🔋</div><div class="val">66%</div><div class="lbl">Avg. SoC</div></div>
+    </div>
+
+    <div class="table-card">
+      <div class="disp" style="font-weight:600;margin-bottom:14px;font-size:14px;">Live Fleet Status</div>
+      <table>
+        <tr><th>Vehicle</th><th>Driver</th><th>Status</th><th>Speed</th><th>SoC</th></tr>
+        <tr class="row"><td>WB-01-AB-1234</td><td style="color:var(--text-secondary)">Rakesh Sharma</td><td><span class="badge active-badge"><span class="dot" style="background:var(--success)"></span>Active</span></td><td style="color:var(--text-secondary)">34 km/h</td><td><span class="soc-bar"><span class="soc-fill" style="width:82%"></span></span>82%</td></tr>
+        <tr class="row"><td>WB-01-AB-5678</td><td style="color:var(--text-secondary)">Manoj Singh</td><td><span class="badge active-badge"><span class="dot" style="background:var(--success)"></span>Active</span></td><td style="color:var(--text-secondary)">41 km/h</td><td><span class="soc-bar"><span class="soc-fill" style="width:65%"></span></span>65%</td></tr>
+        <tr class="row"><td>WB-01-AB-9012</td><td style="color:var(--text-secondary)">Unassigned</td><td><span class="badge idle-badge"><span class="dot" style="background:var(--warning)"></span>Idle</span></td><td style="color:var(--text-secondary)">0 km/h</td><td><span class="soc-bar"><span class="soc-fill" style="width:91%"></span></span>91%</td></tr>
+        <tr class="row"><td>WB-01-AB-7890</td><td style="color:var(--text-secondary)">Unassigned</td><td><span class="badge service-badge"><span class="dot" style="background:var(--danger)"></span>Under Service</span></td><td style="color:var(--text-secondary)">0 km/h</td><td><span class="soc-bar"><span class="soc-fill" style="width:12%;background:var(--danger)"></span></span>12%</td></tr>
+      </table>
+    </div>
+
+    <div class="footer">Built by <b>Aditya</b> with love ❤️</div>
+  </div>
+</div>
+</body>
+</html>
