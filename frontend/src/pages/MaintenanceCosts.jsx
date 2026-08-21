@@ -157,7 +157,7 @@ export default function MaintenanceCosts() {
                   <Cell key={entry._id} fill={TYPE_COLORS[entry._id] || "#8891A5"} />
                 ))}
               </Pie>
-              <Tooltip contentStyle={{ background: "var(--bg-secondary)", border: "1px solid var(--border-color)", borderRadius: 12 }} />
+              <Tooltip contentStyle={{ background: "var(--bg-secondary)", border: "1px solid var(--border-color)", borderRadius: 12, color: "var(--text-primary)" }} labelStyle={{ color: "var(--text-primary)" }} itemStyle={{ color: "var(--text-primary)" }} />
             </PieChart>
           </ResponsiveContainer>
         </motion.div>
@@ -169,7 +169,7 @@ export default function MaintenanceCosts() {
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
               <XAxis dataKey="vehicleNumber" tick={{ fontSize: 11, fill: "var(--text-secondary)" }} tickFormatter={(v) => v.slice(-4)} />
               <YAxis tick={{ fontSize: 11, fill: "var(--text-secondary)" }} />
-              <Tooltip contentStyle={{ background: "var(--bg-secondary)", border: "1px solid var(--border-color)", borderRadius: 12 }} />
+              <Tooltip contentStyle={{ background: "var(--bg-secondary)", border: "1px solid var(--border-color)", borderRadius: 12, color: "var(--text-primary)" }} labelStyle={{ color: "var(--text-primary)" }} itemStyle={{ color: "var(--text-primary)" }} />
               <Bar dataKey="total" fill="var(--accent-blue)" radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
