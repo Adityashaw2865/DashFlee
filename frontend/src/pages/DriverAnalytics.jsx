@@ -93,7 +93,7 @@ export default function DriverAnalytics() {
               <PolarGrid stroke="var(--border-color)" />
               <PolarAngleAxis dataKey="metric" tick={{ fontSize: 11, fill: "var(--text-secondary)" }} />
               <Radar dataKey="value" stroke="var(--accent-blue)" fill="var(--accent-blue)" fillOpacity={0.3} />
-              <Tooltip contentStyle={{ background: "var(--bg-secondary)", border: "1px solid var(--border-color)", borderRadius: 12 }} />
+              <Tooltip contentStyle={{ background: "var(--bg-secondary)", border: "1px solid var(--border-color)", borderRadius: 12, color: "var(--text-primary)" }} labelStyle={{ color: "var(--text-primary)" }} itemStyle={{ color: "var(--text-primary)" }} />
             </RadarChart>
           </ResponsiveContainer>
         </motion.div>
@@ -105,7 +105,7 @@ export default function DriverAnalytics() {
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
               <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 11, fill: "var(--text-secondary)" }} />
               <YAxis dataKey="name" type="category" width={90} tick={{ fontSize: 11, fill: "var(--text-secondary)" }} />
-              <Tooltip contentStyle={{ background: "var(--bg-secondary)", border: "1px solid var(--border-color)", borderRadius: 12 }} />
+              <Tooltip contentStyle={{ background: "var(--bg-secondary)", border: "1px solid var(--border-color)", borderRadius: 12, color: "var(--text-primary)" }} labelStyle={{ color: "var(--text-primary)" }} itemStyle={{ color: "var(--text-primary)" }} />
               <Bar dataKey="onTimePercent" fill="var(--accent-blue)" radius={[0, 6, 6, 0]} />
             </BarChart>
           </ResponsiveContainer>
