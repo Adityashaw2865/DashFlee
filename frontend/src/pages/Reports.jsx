@@ -104,7 +104,7 @@ export default function Reports() {
                   <Cell key={entry.name} fill={COLORS[entry.name]} />
                 ))}
               </Pie>
-              <Tooltip contentStyle={{ background: "var(--bg-secondary)", border: "1px solid var(--border-color)", borderRadius: 12 }} />
+              <Tooltip contentStyle={{ background: "var(--bg-secondary)", border: "1px solid var(--border-color)", borderRadius: 12, color: "var(--text-primary)" }} labelStyle={{ color: "var(--text-primary)" }} itemStyle={{ color: "var(--text-primary)" }} />
             </PieChart>
           </ResponsiveContainer>
         </motion.div>
@@ -116,7 +116,7 @@ export default function Reports() {
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
               <XAxis dataKey="name" tick={{ fontSize: 11, fill: "var(--text-secondary)" }} />
               <YAxis tick={{ fontSize: 11, fill: "var(--text-secondary)" }} />
-              <Tooltip contentStyle={{ background: "var(--bg-secondary)", border: "1px solid var(--border-color)", borderRadius: 12 }} />
+              <Tooltip contentStyle={{ background: "var(--bg-secondary)", border: "1px solid var(--border-color)", borderRadius: 12, color: "var(--text-primary)" }} labelStyle={{ color: "var(--text-primary)" }} itemStyle={{ color: "var(--text-primary)" }} />
               <Bar dataKey="soc" fill="var(--accent-blue)" radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
