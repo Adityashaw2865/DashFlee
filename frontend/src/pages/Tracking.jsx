@@ -196,8 +196,8 @@ export default function Tracking() {
         >
           <MapContainer center={[22.5726, 88.3639]} zoom={12} style={{ height: "100%", width: "100%", borderRadius: "16px" }}>
             <TileLayer
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              attribution='&copy; OpenStreetMap contributors'
+              url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+              attribution='&copy; <a href="https://carto.com/attributions">CARTO</a> &copy; OpenStreetMap contributors'
             />
             {vehicles.map((v) => (
               <Marker
