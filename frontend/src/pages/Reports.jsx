@@ -5,14 +5,18 @@ import { Download, FileText } from "lucide-react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import API from "../api/axios";
+import Loader from "../components/Loader";
 
 const COLORS = { Active: "#30D158", Idle: "#FF9F0A", "Under Service": "#FF453A" };
 
 export default function Reports() {
   const [vehicles, setVehicles] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    API.get("/vehicles").then((res) => setVehicles(res.data));
+    API.get("/vehicles")
+      .then((res) => setVehicles(res.data))
+      .finally(() => setLoading(false));
   }, []);
 
   const statusData = ["Active", "Idle", "Under Service"].map((status) => ({
@@ -66,6 +70,8 @@ export default function Reports() {
 
     doc.save("dashflee_fleet_report.pdf");
   };
+
+  if (loading) return <Loader label="Loading reports..." />;
 
   return (
     <div>
