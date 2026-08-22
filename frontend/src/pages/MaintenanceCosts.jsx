@@ -4,6 +4,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { Plus, Wallet, Trash2, X } from "lucide-react";
 import API from "../api/axios";
 import StatCard from "../components/StatCard";
+import Loader from "../components/Loader";
 
 const TYPE_COLORS = {
   Fuel: "#0A84FF",
@@ -19,10 +20,11 @@ export default function MaintenanceCosts() {
   const [records, setRecords] = useState([]);
   const [summary, setSummary] = useState({ total: 0, byType: [], byVehicle: [] });
   const [vehicles, setVehicles] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ vehicle: "", type: "Service", description: "", cost: "", odometer: "" });
 
-  const fetchAll = async () => {
+  const fetchAll = async (isInitial = false) => {
     const [{ data: r }, { data: s }, { data: v }] = await Promise.all([
       API.get("/maintenance"),
       API.get("/maintenance/summary"),
@@ -31,10 +33,11 @@ export default function MaintenanceCosts() {
     setRecords(r);
     setSummary(s);
     setVehicles(v);
+    if (isInitial) setLoading(false);
   };
 
   useEffect(() => {
-    fetchAll();
+    fetchAll(true);
   }, []);
 
   const addRecord = async () => {
@@ -49,6 +52,8 @@ export default function MaintenanceCosts() {
     await API.delete(`/maintenance/${id}`);
     fetchAll();
   };
+
+  if (loading) return <Loader label="Loading cost tracker..." />;
 
   return (
     <div>
