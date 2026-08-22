@@ -3,13 +3,19 @@ import { motion } from "framer-motion";
 import { Star, Phone, IdCard } from "lucide-react";
 import API from "../api/axios";
 import StatusBadge from "../components/StatusBadge";
+import Loader from "../components/Loader";
 
 export default function Drivers() {
   const [drivers, setDrivers] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    API.get("/drivers").then((res) => setDrivers(res.data));
+    API.get("/drivers")
+      .then((res) => setDrivers(res.data))
+      .finally(() => setLoading(false));
   }, []);
+
+  if (loading) return <Loader label="Loading drivers..." />;
 
   return (
     <div>
