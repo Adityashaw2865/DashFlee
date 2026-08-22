@@ -4,36 +4,45 @@ import { Car, Activity, PauseCircle, Wrench, BatteryMedium } from "lucide-react"
 import API from "../api/axios";
 import StatCard from "../components/StatCard";
 import StatusBadge from "../components/StatusBadge";
+import Loader from "../components/Loader";
 import { useSocket } from "../hooks/useSocket";
 
 export default function Dashboard() {
   const [stats, setStats] = useState(null);
   const [vehicles, setVehicles] = useState([]);
+  const [loading, setLoading] = useState(true);
   const socketRef = useSocket();
 
-  const fetchData = async () => {
-    const [statsRes, vehiclesRes] = await Promise.all([
-      API.get("/vehicles/stats"),
-      API.get("/vehicles"),
-    ]);
-    setStats(statsRes.data);
-    setVehicles(vehiclesRes.data);
+  const fetchData = async (isInitial = false) => {
+    if (isInitial) setLoading(true);
+    try {
+      const [statsRes, vehiclesRes] = await Promise.all([
+        API.get("/vehicles/stats"),
+        API.get("/vehicles"),
+      ]);
+      setStats(statsRes.data);
+      setVehicles(vehiclesRes.data);
+    } finally {
+      if (isInitial) setLoading(false);
+    }
   };
 
   useEffect(() => {
-    fetchData();
+    fetchData(true);
   }, []);
 
   useEffect(() => {
     const socket = socketRef.current;
     if (!socket) return;
-    socket.on("vehicleUpdate", () => fetchData());
-    socket.on("newAlert", () => fetchData());
+    socket.on("vehicleUpdate", () => fetchData(false));
+    socket.on("newAlert", () => fetchData(false));
     return () => {
       socket.off("vehicleUpdate");
       socket.off("newAlert");
     };
   }, [socketRef.current]);
+
+  if (loading) return <Loader label="Loading fleet overview..." />;
 
   return (
     <div>
