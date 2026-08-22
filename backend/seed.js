@@ -9,6 +9,17 @@ import Geofence from "./models/Geofence.js";
 dotenv.config();
 await connectDB();
 
+const ADMIN_NAME = process.env.ADMIN_NAME || "Admin";
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+
+if (!ADMIN_EMAIL || !ADMIN_PASSWORD) {
+  console.error(
+    "❌ Missing ADMIN_EMAIL or ADMIN_PASSWORD in .env. Add them before running the seed script."
+  );
+  process.exit(1);
+}
+
 const run = async () => {
   try {
     // Clear existing
@@ -20,9 +31,9 @@ const run = async () => {
 
     // Admin
     await User.create({
-      name: "Aditya",
-      email: "aks09adi@gmail.com",
-      password: "Aditya@0901",
+      name: ADMIN_NAME,
+      email: ADMIN_EMAIL,
+      password: ADMIN_PASSWORD,
       role: "admin",
     });
     console.log("✅ Admin user created");
@@ -79,8 +90,8 @@ const run = async () => {
     console.log("✅ Geofence zones created");
 
     console.log("\n🎉 Seed complete! Login with:");
-    console.log("   Email: aks09adi@gmail.com");
-    console.log("   Password: Aditya@0901\n");
+    console.log(`   Email: ${ADMIN_EMAIL}`);
+    console.log("   Password: (as set in your .env)\n");
     process.exit();
   } catch (err) {
     console.error("Seed error:", err);
