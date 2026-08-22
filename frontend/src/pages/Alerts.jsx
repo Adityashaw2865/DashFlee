@@ -3,27 +3,30 @@ import { motion, AnimatePresence } from "framer-motion";
 import { AlertTriangle, MapPin, Truck, CheckCircle2 } from "lucide-react";
 import API from "../api/axios";
 import StatusBadge from "../components/StatusBadge";
+import Loader from "../components/Loader";
 import { useSocket } from "../hooks/useSocket";
 
 export default function Alerts() {
   const [alerts, setAlerts] = useState([]);
+  const [loading, setLoading] = useState(true);
   const socketRef = useSocket();
 
-  const fetchAlerts = async () => {
+  const fetchAlerts = async (isInitial = false) => {
     const { data } = await API.get("/alerts");
     setAlerts(data);
+    if (isInitial) setLoading(false);
   };
 
   useEffect(() => {
-    fetchAlerts();
+    fetchAlerts(true);
   }, []);
 
   useEffect(() => {
     const socket = socketRef.current;
     if (!socket) return;
-    socket.on("newAlert", fetchAlerts);
-    socket.on("alertUpdated", fetchAlerts);
-    socket.on("alertResolved", fetchAlerts);
+    socket.on("newAlert", () => fetchAlerts(false));
+    socket.on("alertUpdated", () => fetchAlerts(false));
+    socket.on("alertResolved", () => fetchAlerts(false));
     return () => {
       socket.off("newAlert");
       socket.off("alertUpdated");
@@ -40,6 +43,8 @@ export default function Alerts() {
     await API.put(`/alerts/${id}/resolve`);
     fetchAlerts();
   };
+
+  if (loading) return <Loader label="Loading alerts..." />;
 
   return (
     <div>
