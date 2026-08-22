@@ -16,16 +16,20 @@ import {
 import { TrendingUp, Star, ShieldCheck, Clock } from "lucide-react";
 import API from "../api/axios";
 import StatCard from "../components/StatCard";
+import Loader from "../components/Loader";
 
 export default function DriverAnalytics() {
   const [drivers, setDrivers] = useState([]);
   const [selected, setSelected] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    API.get("/drivers/performance").then((res) => {
-      setDrivers(res.data);
-      setSelected(res.data[0] || null);
-    });
+    API.get("/drivers/performance")
+      .then((res) => {
+        setDrivers(res.data);
+        setSelected(res.data[0] || null);
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   const avgRating = drivers.length ? (drivers.reduce((s, d) => s + d.rating, 0) / drivers.length).toFixed(2) : 0;
@@ -41,6 +45,8 @@ export default function DriverAnalytics() {
         { metric: "Smoothness", value: Math.max(0, 100 - selected.harshBrakingEvents * 8) },
       ]
     : [];
+
+  if (loading) return <Loader label="Loading driver analytics..." />;
 
   return (
     <div>
