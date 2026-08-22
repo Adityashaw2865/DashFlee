@@ -17,12 +17,23 @@ dotenv.config();
 connectDB();
 
 const app = express();
-app.use(cors());
+
+// Restrict CORS to your actual frontend URL(s) via env var (comma-separated allowed)
+const allowedOrigins = process.env.CLIENT_URL
+  ? process.env.CLIENT_URL.split(",").map((o) => o.trim())
+  : ["http://localhost:5173"];
+
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true,
+  })
+);
 app.use(express.json());
 
 const server = http.createServer(app);
 const io = new Server(server, {
-  cors: { origin: "*" },
+  cors: { origin: allowedOrigins },
 });
 
 app.set("io", io);
@@ -36,6 +47,19 @@ app.use("/api/geofences", geofenceRoutes);
 
 app.get("/", (req, res) => {
   res.send("🚍 DashFlee API — Built by Aditya with love ❤️");
+});
+
+// ---- 404 handler (unknown routes) ----
+app.use((req, res) => {
+  res.status(404).json({ message: "Route not found" });
+});
+
+// ---- Global error handler (catches anything thrown/passed via next(err)) ----
+app.use((err, req, res, next) => {
+  console.error("❌ Unhandled error:", err.stack || err.message);
+  res.status(err.status || 500).json({
+    message: err.message || "Internal server error",
+  });
 });
 
 io.on("connection", (socket) => {
