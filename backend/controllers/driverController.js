@@ -2,8 +2,12 @@ import Driver from "../models/Driver.js";
 import Vehicle from "../models/Vehicle.js";
 
 export const getDrivers = async (req, res) => {
-  const drivers = await Driver.find().populate("assignedVehicle", "vehicleNumber status");
-  res.json(drivers);
+  try {
+    const drivers = await Driver.find().populate("assignedVehicle", "vehicleNumber status");
+    res.json(drivers);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 };
 
 export const createDriver = async (req, res) => {
@@ -16,40 +20,66 @@ export const createDriver = async (req, res) => {
 };
 
 export const updateDriver = async (req, res) => {
-  const driver = await Driver.findByIdAndUpdate(req.params.id, req.body, { new: true });
-  res.json(driver);
+  try {
+    const driver = await Driver.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!driver) return res.status(404).json({ message: "Driver not found" });
+    res.json(driver);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
 };
 
 export const deleteDriver = async (req, res) => {
-  await Driver.findByIdAndDelete(req.params.id);
-  res.json({ message: "Driver removed" });
+  try {
+    const driver = await Driver.findByIdAndDelete(req.params.id);
+    if (!driver) return res.status(404).json({ message: "Driver not found" });
+    res.json({ message: "Driver removed" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 };
 
 export const getDriverPerformance = async (req, res) => {
-  const drivers = await Driver.find().populate("assignedVehicle", "vehicleNumber");
-  const performance = drivers.map((d) => ({
-    _id: d._id,
-    name: d.name,
-    vehicle: d.assignedVehicle?.vehicleNumber || "Unassigned",
-    rating: d.rating,
-    tripsCompleted: d.tripsCompleted,
-    onTimePercent: d.onTimePercent,
-    safetyScore: d.safetyScore,
-    harshBrakingEvents: d.harshBrakingEvents,
-    avgSpeed: d.avgSpeed,
-    experience: d.experience,
-  }));
-  res.json(performance);
+  try {
+    const drivers = await Driver.find().populate("assignedVehicle", "vehicleNumber");
+    const performance = drivers.map((d) => ({
+      _id: d._id,
+      name: d.name,
+      vehicle: d.assignedVehicle?.vehicleNumber || "Unassigned",
+      rating: d.rating,
+      tripsCompleted: d.tripsCompleted,
+      onTimePercent: d.onTimePercent,
+      safetyScore: d.safetyScore,
+      harshBrakingEvents: d.harshBrakingEvents,
+      avgSpeed: d.avgSpeed,
+      experience: d.experience,
+    }));
+    res.json(performance);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 };
 
 export const assignVehicle = async (req, res) => {
-  const { vehicleId } = req.body;
-  const driver = await Driver.findById(req.params.id);
-  driver.assignedVehicle = vehicleId;
-  driver.status = "On Duty";
-  await driver.save();
+  try {
+    const { vehicleId } = req.body;
 
-  await Vehicle.findByIdAndUpdate(vehicleId, { driver: driver._id, status: "Active" });
+    const driver = await Driver.findById(req.params.id);
+    if (!driver) return res.status(404).json({ message: "Driver not found" });
 
-  res.json(driver);
+    const vehicle = await Vehicle.findById(vehicleId);
+    if (!vehicle) return res.status(404).json({ message: "Vehicle not found" });
+
+    driver.assignedVehicle = vehicleId;
+    driver.status = "On Duty";
+    await driver.save();
+
+    vehicle.driver = driver._id;
+    vehicle.status = "Active";
+    await vehicle.save();
+
+    res.json(driver);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 };
