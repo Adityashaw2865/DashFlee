@@ -6,6 +6,7 @@ import { AlertTriangle, Play, Pause, History, ShieldAlert, Plus, X } from "lucid
 import API from "../api/axios";
 import StatusBadge from "../components/StatusBadge";
 import { useSocket } from "../hooks/useSocket";
+import Loader from "../components/Loader";
 
 const statusColor = { Active: "#30D158", Idle: "#FF9F0A", "Under Service": "#FF453A" };
 
@@ -32,6 +33,7 @@ const playbackIcon = L.divIcon({
 export default function Tracking() {
   const [vehicles, setVehicles] = useState([]);
   const [selected, setSelected] = useState(null);
+  const [loading, setLoading] = useState(true);
   const socketRef = useSocket();
 
   // route playback state
@@ -55,8 +57,7 @@ export default function Tracking() {
   };
 
   useEffect(() => {
-    fetchVehicles();
-    fetchZones();
+    Promise.all([fetchVehicles(), fetchZones()]).finally(() => setLoading(false));
   }, []);
 
   useEffect(() => {
@@ -114,6 +115,8 @@ export default function Tracking() {
 
   const trailPositions = history.slice(0, playIndex + 1).map((h) => [h.lat, h.lng]);
   const playbackPoint = history[playIndex];
+
+  if (loading) return <Loader label="Loading live tracking..." />;
 
   return (
     <div>
