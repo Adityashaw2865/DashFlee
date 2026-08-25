@@ -87,7 +87,27 @@ export const startGpsSimulator = (io) => {
         v.currentZones = Array.from(nowInside);
 
         await v.save();
-        io.emit("vehicleUpdate", v);
+
+        // Broadcast a lightweight payload only — NOT the full document.
+        // v.locationHistory can hold up to MAX_HISTORY_POINTS (200) GPS points;
+        // sending that over the socket for every vehicle, every 3s, to every
+        // connected client was the main cause of the slow/laggy live updates.
+        // The frontend only needs current position/status for the map + list;
+        // full history is fetched separately via GET /vehicles/:id/history.
+        const { _id, vehicleNumber, status, location, speed, soc, driver, currentZones } = v;
+        io.emit("vehicleUpdate", {
+          _id,
+          vehicleNumber,
+          status,
+          location,
+          speed,
+          soc,
+          driver,
+          currentZones,
+          // just the newest point, so route-playback can append it live
+          // without needing the whole (up to 200-point) history array
+          latestPoint: v.locationHistory[v.locationHistory.length - 1],
+        });
 
         // ---- Low SoC micro alert (occasional) ----
         if (v.soc < 15 && Math.random() < 0.05) {
