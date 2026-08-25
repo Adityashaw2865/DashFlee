@@ -124,5 +124,5 @@ export const startGpsSimulator = (io) => {
     } catch (err) {
       console.error("GPS Simulator error:", err.message);
     }
-  }, 3000);
+  }, 5000);
 };
