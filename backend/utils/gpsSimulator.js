@@ -15,7 +15,7 @@ const distanceMeters = (lat1, lng1, lat2, lng2) => {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 };
 
-// tracks which vehicles are currently inside which geofences, to detect exit events
+// tracks which vehicles are currently inside which geofences, to detect entry/exit events
 const insideZones = new Map(); // vehicleId -> Set(zoneId)
 
 export const startGpsSimulator = (io) => {
@@ -48,7 +48,7 @@ export const startGpsSimulator = (io) => {
         await v.save();
         io.emit("vehicleUpdate", v);
 
-        // ---- Geofence breach detection ----
+        // ---- Geofence entry/exit detection ----
         const vId = v._id.toString();
         const prevInside = insideZones.get(vId) || new Set();
         const nowInside = new Set();
@@ -58,6 +58,7 @@ export const startGpsSimulator = (io) => {
           if (d <= zone.radius) nowInside.add(zone._id.toString());
         }
 
+        // exits: zone was in prevInside but not in nowInside
         for (const zoneId of prevInside) {
           if (!nowInside.has(zoneId)) {
             const zone = zones.find((z) => z._id.toString() === zoneId);
@@ -71,6 +72,22 @@ export const startGpsSimulator = (io) => {
             io.emit("newAlert", alert);
           }
         }
+
+        // entries: zone is in nowInside but wasn't in prevInside
+        for (const zoneId of nowInside) {
+          if (!prevInside.has(zoneId)) {
+            const zone = zones.find((z) => z._id.toString() === zoneId);
+            const alert = await Alert.create({
+              vehicle: v._id,
+              type: "Geofence Entry",
+              message: `${v.vehicleNumber} entered geofence "${zone?.name || "zone"}".`,
+              location: v.location,
+              status: "Open",
+            });
+            io.emit("newAlert", alert);
+          }
+        }
+
         insideZones.set(vId, nowInside);
 
         // ---- Low SoC micro alert (occasional) ----
