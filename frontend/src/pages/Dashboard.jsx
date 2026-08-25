@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Car, Activity, PauseCircle, Wrench, BatteryMedium } from "lucide-react";
@@ -27,6 +28,17 @@ export default function Dashboard() {
     }
   };
 
+  // recompute the 5 stat cards locally from the vehicles list —
+  // avoids hitting /vehicles/stats on every single socket tick
+  const recomputeStats = (list) => {
+    const total = list.length;
+    const active = list.filter((v) => v.status === "Active").length;
+    const idle = list.filter((v) => v.status === "Idle").length;
+    const underService = list.filter((v) => v.status === "Under Service").length;
+    const avgSoc = total ? (list.reduce((sum, v) => sum + (v.soc || 0), 0) / total).toFixed(1) : 0;
+    setStats({ total, active, idle, underService, avgSoc });
+  };
+
   useEffect(() => {
     fetchData(true);
   }, []);
@@ -34,11 +46,24 @@ export default function Dashboard() {
   useEffect(() => {
     const socket = socketRef.current;
     if (!socket) return;
-    socket.on("vehicleUpdate", () => fetchData(false));
-    socket.on("newAlert", () => fetchData(false));
+
+    // one vehicle moved -> merge just that vehicle into state, no refetch
+    const handleVehicleUpdate = (updated) => {
+      setVehicles((prev) => {
+        const next = prev.map((v) => (v._id === updated._id ? updated : v));
+        recomputeStats(next);
+        return next;
+      });
+    };
+
+    // a new alert can flip a vehicle to "Under Service" -> worth a real refetch
+    const handleNewAlert = () => fetchData(false);
+
+    socket.on("vehicleUpdate", handleVehicleUpdate);
+    socket.on("newAlert", handleNewAlert);
     return () => {
-      socket.off("vehicleUpdate");
-      socket.off("newAlert");
+      socket.off("vehicleUpdate", handleVehicleUpdate);
+      socket.off("newAlert", handleNewAlert);
     };
   }, [socketRef.current]);
 
