@@ -15,9 +15,6 @@ const distanceMeters = (lat1, lng1, lat2, lng2) => {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 };
 
-// tracks which vehicles are currently inside which geofences, to detect entry/exit events
-const insideZones = new Map(); // vehicleId -> Set(zoneId)
-
 export const startGpsSimulator = (io) => {
   setInterval(async () => {
     try {
@@ -45,12 +42,11 @@ export const startGpsSimulator = (io) => {
           v.locationHistory = v.locationHistory.slice(-MAX_HISTORY_POINTS);
         }
 
-        await v.save();
-        io.emit("vehicleUpdate", v);
-
         // ---- Geofence entry/exit detection ----
-        const vId = v._id.toString();
-        const prevInside = insideZones.get(vId) || new Set();
+        // v.currentZones is persisted on the document itself (not an in-memory Map),
+        // so this survives server restarts and works correctly across multiple
+        // backend instances if the app is ever scaled horizontally.
+        const prevInside = new Set((v.currentZones || []).map((id) => id.toString()));
         const nowInside = new Set();
 
         for (const zone of zones) {
@@ -88,7 +84,10 @@ export const startGpsSimulator = (io) => {
           }
         }
 
-        insideZones.set(vId, nowInside);
+        v.currentZones = Array.from(nowInside);
+
+        await v.save();
+        io.emit("vehicleUpdate", v);
 
         // ---- Low SoC micro alert (occasional) ----
         if (v.soc < 15 && Math.random() < 0.05) {
