@@ -71,7 +71,7 @@ export default function Tracking() {
       setSelected((prevSelected) => {
         if (!prevSelected || prevSelected._id !== updated._id) return prevSelected;
 
-        const latest = updated.locationHistory?.[updated.locationHistory.length - 1];
+        const latest = updated.latestPoint;
         if (latest) {
           setHistory((prevHistory) => {
             const alreadyHave =
