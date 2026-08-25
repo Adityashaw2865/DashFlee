@@ -19,6 +19,10 @@ const vehicleSchema = new mongoose.Schema(
     soc: { type: Number, default: 100 }, // State of Charge %
     lastServiceDate: { type: Date, default: Date.now },
     documentsValid: { type: Boolean, default: true },
+    // geofence zone IDs this vehicle is currently inside — persisted (not in-memory)
+    // so entry/exit detection survives server restarts and works across multiple
+    // backend instances (horizontal scaling), instead of relying on a process-local Map.
+    currentZones: [{ type: mongoose.Schema.Types.ObjectId, ref: "Geofence" }],
     locationHistory: [
       {
         lat: Number,
