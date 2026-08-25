@@ -3,7 +3,9 @@ import Alert from "../models/Alert.js";
 
 export const getVehicles = async (req, res) => {
   try {
-    const vehicles = await Vehicle.find().populate("driver", "name rfidId phone");
+    const vehicles = await Vehicle.find()
+      .select("-locationHistory")
+      .populate("driver", "name rfidId phone");
     res.json(vehicles);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -95,7 +97,16 @@ export const reportDamage = async (req, res) => {
 
     const io = req.app.get("io");
     io.emit("newAlert", alert);
-    io.emit("vehicleUpdate", vehicle);
+    io.emit("vehicleUpdate", {
+      _id: vehicle._id,
+      vehicleNumber: vehicle.vehicleNumber,
+      status: vehicle.status,
+      location: vehicle.location,
+      speed: vehicle.speed,
+      soc: vehicle.soc,
+      driver: vehicle.driver,
+      currentZones: vehicle.currentZones,
+    });
 
     res.json({ vehicle, alert });
   } catch (err) {
