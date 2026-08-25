@@ -24,13 +24,18 @@ export default function Alerts() {
   useEffect(() => {
     const socket = socketRef.current;
     if (!socket) return;
-    socket.on("newAlert", () => fetchAlerts(false));
-    socket.on("alertUpdated", () => fetchAlerts(false));
-    socket.on("alertResolved", () => fetchAlerts(false));
+
+    const handleNewAlert = () => fetchAlerts(false);
+    const handleAlertUpdated = () => fetchAlerts(false);
+    const handleAlertResolved = () => fetchAlerts(false);
+
+    socket.on("newAlert", handleNewAlert);
+    socket.on("alertUpdated", handleAlertUpdated);
+    socket.on("alertResolved", handleAlertResolved);
     return () => {
-      socket.off("newAlert");
-      socket.off("alertUpdated");
-      socket.off("alertResolved");
+      socket.off("newAlert", handleNewAlert);
+      socket.off("alertUpdated", handleAlertUpdated);
+      socket.off("alertResolved", handleAlertResolved);
     };
   }, [socketRef.current]);
 
