@@ -63,10 +63,35 @@ export default function Tracking() {
   useEffect(() => {
     const socket = socketRef.current;
     if (!socket) return;
-    socket.on("vehicleUpdate", (updated) => {
+
+    const handleVehicleUpdate = (updated) => {
       setVehicles((prev) => prev.map((v) => (v._id === updated._id ? updated : v)));
-    });
-    return () => socket.off("vehicleUpdate");
+
+      // keep selected vehicle's card + route playback in sync
+      setSelected((prevSelected) => {
+        if (!prevSelected || prevSelected._id !== updated._id) return prevSelected;
+
+        const latest = updated.locationHistory?.[updated.locationHistory.length - 1];
+        if (latest) {
+          setHistory((prevHistory) => {
+            const alreadyHave =
+              prevHistory.length > 0 &&
+              prevHistory[prevHistory.length - 1].timestamp === latest.timestamp;
+            if (alreadyHave) return prevHistory;
+
+            const nextHistory = [...prevHistory, latest];
+            // auto-advance the scrubber only if user was already at the live edge
+            setPlayIndex((i) => (i >= prevHistory.length - 1 ? nextHistory.length - 1 : i));
+            return nextHistory;
+          });
+        }
+
+        return updated;
+      });
+    };
+
+    socket.on("vehicleUpdate", handleVehicleUpdate);
+    return () => socket.off("vehicleUpdate", handleVehicleUpdate);
   }, [socketRef.current]);
 
   const reportDamage = async (id) => {
