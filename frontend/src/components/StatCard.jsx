@@ -1,19 +1,44 @@
 import { motion, useMotionValue, useTransform, animate } from "framer-motion";
 import { useEffect } from "react";
 
-function Counter({ value }) {
+function Counter({ value, decimals = 0 }) {
   const count = useMotionValue(0);
-  const rounded = useTransform(count, (v) => Math.round(v));
+
+  // Math.round() here is what previously threw away every decimal: an average
+  // rating of 4.68 rendered as "5" and an average SoC of 82.5 as "83", which made
+  // the .toFixed() work upstream pointless. The caller now decides the precision.
+  // Grouping separators keep large figures (total spend, trip counts) readable.
+  const display = useTransform(count, (v) =>
+    v.toLocaleString("en-IN", {
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals,
+    })
+  );
 
   useEffect(() => {
-    const controls = animate(count, value, { duration: 1.2, ease: [0.16, 1, 0.3, 1] });
+    // Guard against strings and NaN — several callers pass the result of
+    // .toFixed(), which is a string, and a failed computation can yield NaN.
+    const target = Number(value);
+    const controls = animate(count, Number.isFinite(target) ? target : 0, {
+      duration: 1.2,
+      ease: [0.16, 1, 0.3, 1],
+    });
     return controls.stop;
-  }, [value]);
+  }, [count, value]);
 
-  return <motion.span>{rounded}</motion.span>;
+  return <motion.span>{display}</motion.span>;
 }
 
-export default function StatCard({ icon: Icon, label, value, color = "blue", suffix = "", delay = 0 }) {
+export default function StatCard({
+  icon: Icon,
+  label,
+  value,
+  color = "blue",
+  prefix = "",
+  suffix = "",
+  decimals = 0,
+  delay = 0,
+}) {
   const colorMap = {
     blue: "text-accent-blue bg-accent-blue/10",
     success: "text-success bg-success/10",
@@ -29,12 +54,13 @@ export default function StatCard({ icon: Icon, label, value, color = "blue", suf
       className="glass-card p-5 shadow-card"
     >
       <div className="flex items-center justify-between mb-3">
-        <div className={`p-2.5 rounded-xl ${colorMap[color]}`}>
-          <Icon size={18} />
+        <div className={`p-2.5 rounded-xl ${colorMap[color] || colorMap.blue}`}>
+          {Icon && <Icon size={18} />}
         </div>
       </div>
       <p className="text-2xl font-display font-bold tracking-tight">
-        <Counter value={value} />
+        {prefix}
+        <Counter value={value} decimals={decimals} />
         {suffix}
       </p>
       <p className="text-xs text-text-secondary mt-1">{label}</p>
