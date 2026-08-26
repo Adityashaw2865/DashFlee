@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useRef } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 
 const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || "http://localhost:5001";
@@ -6,40 +6,41 @@ const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || "http://localhost:5001";
 const SocketContext = createContext(null);
 
 export const SocketProvider = ({ children }) => {
-  // socketRef.current is created once, synchronously, during the first render —
-  // this happens BEFORE any consumer's useEffect runs, so `useSocket()` always
-  // sees a live socket on first read. It is intentionally not stored in state:
-  // consumers don't need to re-render when the socket instance itself changes,
-  // they just need a stable object to attach/detach listeners on.
-  const socketRef = useRef(null);
-  if (!socketRef.current) {
-    socketRef.current = io(SOCKET_URL, { autoConnect: true });
-  }
+  // The socket lives in state, not a ref, so that consumers actually re-render
+  // once it exists. Created lazily on first render and never nulled out —
+  // nulling it in cleanup is what previously killed live updates in dev.
+  const [socket] = useState(() => io(SOCKET_URL, { autoConnect: true }));
+
+  // StrictMode (dev only) runs effects mount -> cleanup -> mount. We must NOT
+  // disconnect on that first synthetic cleanup, because the render body won't
+  // run again to recreate the socket. Instead we defer the disconnect to a
+  // microtask-free timeout and cancel it if the component remounts, so only a
+  // real, final unmount actually tears the connection down.
+  const teardownRef = useRef(null);
 
   useEffect(() => {
-    // Under React 18 StrictMode (dev only), this effect runs mount -> cleanup ->
-    // mount again. Previously the cleanup nulled socketRef.current, which meant
-    // the socket for the FIRST mount got disconnected immediately, wasting a
-    // connection every time the app loaded in dev. Now cleanup only fires on the
-    // real, final unmount by checking whether the provider is actually going away.
-    const socket = socketRef.current;
+    if (teardownRef.current) {
+      clearTimeout(teardownRef.current);
+      teardownRef.current = null;
+    }
+
     return () => {
-      socket.disconnect();
-      if (socketRef.current === socket) {
-        socketRef.current = null;
-      }
+      teardownRef.current = setTimeout(() => {
+        socket.disconnect();
+        teardownRef.current = null;
+      }, 0);
     };
-  }, []);
+  }, [socket]);
 
   return (
-    <SocketContext.Provider value={socketRef}>
-      {children}
-    </SocketContext.Provider>
+    <SocketContext.Provider value={socket}>{children}</SocketContext.Provider>
   );
 };
 
 export const useSocket = () => {
   const ctx = useContext(SocketContext);
-  if (!ctx) throw new Error("useSocket must be used within a SocketProvider");
+  if (ctx === null) {
+    throw new Error("useSocket must be used within a SocketProvider");
+  }
   return ctx;
 };
